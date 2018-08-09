@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1533714997059.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "BCBAB016",
+    "lastKnownWriteTime" : 1533780629,
+    "last_content_update" : 1533780629418,
+    "path" : "~/GitHub/PracticalMachineLearning/Project Writeup.Rmd",
+    "project_path" : "Project Writeup.Rmd",
+    "properties" : {
+        "cursorPosition" : "102,3",
+        "scrollLine" : "83",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

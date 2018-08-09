@@ -1,0 +1,105 @@
+---
+title: "Machine Learning Prediction Assignment"
+author: "Cheng Seng"
+date: "August 9, 2018"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Goal of Project
+
+The goal of this project was to predict the manner in which participants completed barbell lift exercise.  Data was collected from accelerometers on the belt, forearm, arm, and dumbell of 6 participants who were asked to perform barbell lifts correctly and incorrectly in 5 different ways. The data for this assignment has been kindly provided from this [source](http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har)
+
+## Loading and preprocessing the data
+```{r warning=FALSE, echo=FALSE, results='hide'}
+library(caret)
+library(corrplot)
+```
+
+First we load up the data and remove variables with NAs & empty strings and informational variables e.g. dates, name, etc that will not affect the prediction. 
+
+```{r}
+# load data
+dat = read.csv("./data/pml-training.csv", na.strings=c("", "NA"))
+# remove NA columns
+dat <- dat[, colSums(is.na(dat)) == 0]   
+# remove unimportant columns in 1st seven columns
+dat = dat[8:length(dat)]
+```
+
+The dataset now contains `53` variables, one of which is `classe` which we convert into a factor.  
+
+```{r}
+dat$classe<-as.factor(dat$classe)
+```
+
+## Training 
+
+We next split the data into training and validation sets. 
+
+```{r}
+# Create training and validation data
+set.seed(41239) # Set seed for reproducibility 
+inTrain <- createDataPartition(dat$classe, p=0.7, list=FALSE)
+training <- dat[inTrain,]
+validation <- dat[-inTrain,]
+
+```
+
+A correlation matrix was plotted with the training data to visualize any highly correlated variables. The circles indicate the level of correlation between different variables. 
+
+```{r}
+correlMatrix <- cor(training[, -length(names(training)) ] )
+corrplot(correlMatrix, type = "lower", tl.cex = 0.8)
+```
+
+We  choose to use the `Random Forest` algorithm to fit a model to select the vital varaibles and avoid overfitting. We will apply a 5-fold cross validation in the algorithm.
+
+``` {r}
+rf <- train(classe ~ ., data = training, method = "rf", trControl = trainControl(method = "cv", 5), ntree = 250)
+rf
+```
+
+## Validation
+
+The validation data is then used with the fitted model. The confusion matrix estimates the performance of the model on new data. 
+
+```{r}
+pred = predict(rf,validation)
+#Get an estimate of how well the model has been trained; 
+confusionMatrix(validation$classe, pred)
+
+# print out of sample error
+acc <- postResample(pred, validation$classe)[1]
+print(round(acc, digits = 4))
+
+ose <- (1 - acc) * 100
+names(ose) <- c("Out of Sample Error")
+print(round(ose, digits = 2))
+```
+
+The performance results indicate that random forest may be a good model for predicting this data as it has an accuracy of `99.5%` with an out of sample error of `0.51%`
+
+## Testing
+
+We finally test the fitted model with the testing data.  The same cleaning steps performed for the training data are repeated for the testing applied data.  The validated model is applied to predict the classes for each of the 20 rows. 
+
+```{r}
+# load & clean test data
+testing = read.csv("./data/pml-testing.csv", na.strings=c("", "NA"))
+testing <- testing[, colSums(is.na(testing)) == 0]   
+# remove unimportant columns in 1st seven columns
+testing = testing[8:length(testing)]
+
+# Fit the model to the testing data
+predict(rf,testing)
+```
+
+
